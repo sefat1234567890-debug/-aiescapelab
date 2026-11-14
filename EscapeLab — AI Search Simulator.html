@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EscapeLab — AI Search Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f9;--card:#fff;--ink:#14203a;--mut:#62718a;--line:#dbe3ef;--acc:#4f6bff;--acc2:#a855f7;--ok:#12a36b;--bad:#e25555;--tile:#e7edf7;--wall:#2f3e5c;--trap:#ffd9b8;--front:#ffb020;--dark:0;--sh:0 8px 30px #1a2a5a14;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);background:var(--bg)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#080d1b;--card:#101a31;--ink:#e8edf9;--mut:#8b9ab6;--line:#22304f;--acc:#7c93ff;--acc2:#c084fc;--ok:#34d399;--bad:#f87171;--tile:#18233f;--wall:#4b5d88;--trap:#5a3a22;--front:#fbbf24;--dark:1;--sh:0 8px 30px #0006}}
+:root[data-theme=dark]{--bg:#080d1b;--card:#101a31;--ink:#e8edf9;--mut:#8b9ab6;--line:#22304f;--acc:#7c93ff;--acc2:#c084fc;--ok:#34d399;--bad:#f87171;--tile:#18233f;--wall:#4b5d88;--trap:#5a3a22;--front:#fbbf24;--dark:1;--sh:0 8px 30px #0006}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:linear-gradient(120deg,#0b1230,#241a5e 60%,#3b1f7a);color:#fff;padding:20px max(16px,calc((100% - 1200px)/2));display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.8px}h1 span{background:linear-gradient(90deg,#8eafff,#d19bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+header p{margin:2px 0 0;color:#c5d0ee;font-size:13px}header button{background:#ffffff1a;color:#fff;border-color:#ffffff40}
+.wrap{max-width:1200px;margin:0 auto;padding:16px}.grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:16px}.col{display:grid;gap:16px;align-content:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--sh);min-width:0}
+h2{font-size:16px;margin:0 0 12px;letter-spacing:-.2px}h2 small{color:var(--mut);font-weight:600;margin-left:6px}h3{margin:0 0 10px;font-size:15px}
+button,select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}button:hover{border-color:var(--acc)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:0;font-weight:700;min-width:104px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}label{display:flex;gap:6px;align-items:center;color:var(--mut);font-size:12px}
+.seg{display:inline-flex;background:var(--tile);border-radius:12px;padding:3px;gap:2px}.seg button{border:0;background:none;padding:6px 11px;border-radius:9px;font-weight:600;color:var(--mut)}.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 5px #0003}
+#stage{display:grid;gap:12px;grid-template-columns:1fr}#stage:not(.race){max-width:600px;margin:0 auto}#stage.race{grid-template-columns:1fr 1fr}
+figure{margin:0}figcaption{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:5px;color:var(--mut)}figcaption b{color:var(--ink)}
+canvas{display:block;width:100%;aspect-ratio:1;border-radius:14px;touch-action:none}
+.tp{margin:14px 0 4px}.tp input[type=range]{accent-color:var(--acc)}#scrub{flex:1;min-width:110px}#tl{font:600 12px "JetBrains Mono",ui-monospace,monospace;color:var(--mut);min-width:64px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:12px 0;color:var(--mut);font-size:11.5px}.legend span{display:flex;align-items:center;gap:5px}.legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+.tools{margin:0}.tools button{font-size:12px;padding:6px 10px}.tools button.on{background:var(--tile);border-color:var(--acc);color:var(--acc)}
+.hint{font-size:12px;color:var(--mut);margin:8px 0 0;min-height:18px}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.tile{background:var(--tile);border-radius:12px;padding:10px 12px}.tile small{color:var(--mut);font-size:11.5px;display:block}.tile b{font:600 26px "JetBrains Mono",ui-monospace,monospace;letter-spacing:-1px}
+dl{display:grid;grid-template-columns:78px 1fr;gap:7px 10px;margin:0;font-size:12.5px}dt{color:var(--mut)}dd{margin:0}
+ul{margin:0;padding-left:18px;font-size:13px}li{margin:7px 0}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--mut);font-weight:600;font-size:12px}tr:last-child td{border:0}
+.bar{position:relative;background:var(--tile);border-radius:6px;height:22px;min-width:110px}.bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:6px;opacity:.5}.bar span{position:relative;padding-left:8px;font:600 12px/22px "JetBrains Mono",ui-monospace,monospace}
+.tag{padding:2px 9px;border-radius:99px;font-size:11.5px;font-weight:600}.tag.ok{background:#12a36b24;color:var(--ok)}.tag.no{background:#e2555524;color:var(--bad)}
+footer{max-width:1200px;margin:0 auto;padding:0 16px 24px;color:var(--mut);font-size:12px}
+@media(max-width:880px){.grid{grid-template-columns:1fr}header{padding:16px}h1{font-size:23px}}
+</style>
+</head>
+<body>
+<header><div><h1>Escape<span>Lab</span></h1><p>An interactive AI search simulator: watch BFS, DFS, UCS and A* solve the same escape room.</p></div><button id="theme" aria-label="Switch light or dark theme">◐ Theme</button></header>
+<div class="wrap">
+<div class="grid">
+<section class="card">
+<div class="row"><label>Room <select id="lv"><option value="0" hidden>Custom map</option><option value="1">Training room</option><option value="2">Trap corridor</option><option value="3">Maze challenge</option></select></label>
+<div class="seg" id="algs"><button data-a="bfs">BFS</button><button data-a="dfs">DFS</button><button data-a="ucs">UCS</button><button data-a="astar" class="on">A*</button></div>
+<div class="seg" id="views"><button data-m="1" class="on">Single</button><button data-m="4">Race all 4</button></div></div>
+<div id="stage"></div>
+<div class="row tp"><button id="rst" aria-label="Restart">⏮</button><button id="prev" aria-label="Step back">‹</button><button id="play" class="pri">▶ Run</button><button id="next" aria-label="Step forward">›</button><input id="scrub" type="range" min="0" max="1" step="1" value="0" aria-label="Timeline"><span id="tl">0 / 0</span><label>Speed <input id="spd" type="range" min="0" max="4" value="2"></label></div>
+<div class="legend"><span><i style="background:var(--ok)"></i>Start</span><span><i style="background:var(--bad)"></i>Exit</span><span><i style="background:#e7a928"></i>Key</span><span><i style="background:#5b8cff"></i>Locked door</span><span><i style="background:var(--trap)"></i>Trap (+5 cost)</span><span><i style="background:var(--wall)"></i>Wall</span><span><i style="background:var(--front)"></i>Frontier</span><span><i style="background:linear-gradient(90deg,hsl(215 85% 60%),hsl(290 85% 60%))"></i>Explored, early to late</span></div>
+<div class="row tools" id="tools"><b>Map editor</b><button data-tool="wall" class="on">Wall</button><button data-tool="trap">Trap</button><button data-tool="erase">Erase</button><button data-tool="s">Move start</button><button data-tool="e">Move exit</button><button data-tool="k">Move key</button><button data-tool="d">Move door</button><button id="rand">🎲 Random map</button><button id="clr">Clear</button></div>
+<p class="hint" id="msg">Pick a tool, then click or drag on the grid. Every edit re-runs all four searches instantly.</p>
+</section>
+<aside class="col">
+<div class="card"><h2>Live metrics <small id="trk"></small></h2><div class="tiles"><div class="tile"><small>States explored</small><b id="m1">0</b></div><div class="tile"><small>Frontier size</small><b id="m2">1</b></div><div class="tile"><small>Path cost</small><b id="m3">…</b></div><div class="tile"><small>Path steps</small><b id="m4">…</b></div></div></div>
+<div class="card" id="theory"></div>
+<div class="card"><h2>What the data says</h2><ul id="ins"></ul></div>
+</aside>
+</div>
+<section class="card" style="margin-top:16px"><h2>Algorithm comparison <small>recomputed live for the current map</small></h2><div class="tw"><table><thead><tr><th>Algorithm</th><th>States explored</th><th>Peak frontier</th><th>Steps</th><th>Cost</th><th>Verdict</th><th>Time</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+</div>
+<footer>Educational simulation of a grid world, not a real evacuation system. The search state is (cell, has key), so the 10 × 10 room has up to 200 states. Traps add 5 to a move; the agent must hold the key to pass the door and to finish at the exit.</footer>
+<script>
+(()=>{"use strict";
+const $=i=>document.getElementById(i),N=10,D=[[-1,0],[0,1],[1,0],[0,-1]],ALGS=["bfs","dfs","ucs","astar"],NM={bfs:"BFS",dfs:"DFS",ucs:"UCS",astar:"A*"},SP=[6,14,30,60,120];
+const man=(a,b)=>Math.abs((a/N|0)-(b/N|0))+Math.abs(a%N-b%N),cl=s=>s.split(" ").map(p=>{const[a,b]=p.split(",");return a*N+ +b});
+const PRE={1:{s:"0,0",e:"9,9",k:"2,1",d:"5,5",w:"0,3 1,3 2,3 3,3 4,3 6,1 6,2 6,3 8,5 8,6 8,7 3,7 4,7 5,7 1,8",t:"2,5 3,5 7,4 7,8 4,9"},
+2:{s:"0,0",e:"9,9",k:"1,7",d:"6,7",w:"1,2 2,2 3,2 4,2 5,2 7,2 8,2 3,4 4,4 5,4 6,4 7,4 2,6 3,6 4,6 5,6 8,7",t:"2,3 5,3 7,5 8,5 4,8 6,9"},
+3:{s:"0,1",e:"9,8",k:"3,8",d:"7,8",w:"0,4 1,4 2,4 3,4 4,4 5,4 7,1 7,2 7,3 7,4 7,5 2,7 3,7 4,7 5,7 6,7 8,2 8,3 8,4",t:"1,2 2,2 4,2 5,5 6,5 8,6 9,6"}};
+const INFO={bfs:["Breadth-First Search","Queue (FIFO)","Expands the shallowest state first","Complete. Fewest moves, but blind to trap costs."],dfs:["Depth-First Search","Stack (LIFO)","Dives down one branch, then backtracks","Complete on this finite grid. No optimality guarantee."],ucs:["Uniform-Cost Search","Priority queue","Orders states by path cost g(n)","Complete and optimal. Spreads out in every direction."],astar:["A* Search","Priority queue","Orders states by f(n) = g(n) + h(n), where h(n) is the Manhattan distance via the key, then the exit","Complete and optimal, because h never overestimates the true cost."]};
+let W,R,P,tool="wall",cvs=[],caps=[],S={t:0,play:false,m:1,alg:"astar",spd:2,last:0,raf:0};
+function solve(type){
+const t0=performance.now(),{s,e,k,d,w,t:tr}=W,h=(c,hk)=>hk?man(c,e):man(c,k)+man(k,e),sid=(c,hk)=>c*2+hk,hk0=+(s===k);
+let fr=[{c:s,hk:hk0,g:0}],closed=new Set,par=new Map,best=new Map([[sid(s,hk0),0]]),order=[],exp=new Int16Array(100).fill(-1),gen=new Int16Array(100).fill(-1),fs=[];gen[s]=0;
+const pri=x=>type==="ucs"?x.g:x.g+h(x.c,x.hk),fin=(rt,g)=>({type,order,exp,gen,fs,route:rt,cost:g,peak:Math.max(...fs),ms:performance.now()-t0});
+while(fr.length){let cur;
+if(type==="bfs")cur=fr.shift();else if(type==="dfs")cur=fr.pop();
+else{fr.sort((a,b)=>pri(a)-pri(b)||(type==="astar"?h(a.c,a.hk)-h(b.c,b.hk):0));cur=fr.shift()}
+const id=sid(cur.c,cur.hk);if(closed.has(id))continue;closed.add(id);
+if(exp[cur.c]<0)exp[cur.c]=order.length;order.push(cur.c);
+if(cur.c===e&&cur.hk){fs.push(fr.length);const rt=[];let z=id;while(z!==undefined){rt.push(z>>1);z=par.get(z)}return fin(rt.reverse(),cur.g)}
+const r=cur.c/N|0,q=cur.c%N;
+for(const[dr,dc]of D){const nr=r+dr,nq=q+dc;if(nr<0||nq<0||nr>=N||nq>=N)continue;const n=nr*N+nq;if(w.has(n)||(n===d&&!cur.hk))continue;
+const hk=cur.hk||+(n===k),g=cur.g+1+(tr.has(n)?5:0),nid=sid(n,hk),nx={c:n,hk,g};
+if(type==="bfs"||type==="dfs"){if(closed.has(nid)||fr.some(x=>sid(x.c,x.hk)===nid))continue}
+else{if(g>=(best.get(nid)??Infinity))continue;best.set(nid,g)}
+par.set(nid,id);fr.push(nx);if(gen[n]<0)gen[n]=order.length}
+fs.push(fr.length)}
+return fin(null,null)}
+function pal(){const cs=getComputedStyle(document.documentElement),g=n=>cs.getPropertyValue(n).trim();P={tile:g("--tile"),wall:g("--wall"),trap:g("--trap"),front:g("--front"),ok:g("--ok"),bad:g("--bad"),acc:g("--acc"),ink:g("--ink"),dark:g("--dark")==="1"}}
+const vis=()=>(S.m===1?[S.alg]:ALGS).map(a=>R[a]),tot=()=>Math.max(...vis().map(r=>r.order.length+(r.route?r.route.length:0)));
+function draw(cv,r){
+const w=cv.clientWidth;if(!w)return;const dp=devicePixelRatio||1,px=Math.round(w*dp);if(cv.width!==px)cv.width=cv.height=px;
+const x=cv.getContext("2d");x.setTransform(px/w,0,0,px/w,0,0);x.clearRect(0,0,w,w);
+const s=w/N,t=S.t,ti=Math.floor(t),E=r.order.length,g=1.5,ctr=c=>[(c%N+.5)*s,((c/N|0)+.5)*s],rr=(a,b,c,f,col)=>{x.beginPath();x.roundRect(a,b,c,c,s*.18);x.fillStyle=col;x.fill()};
+const walk=r.route&&ti>=E?Math.min(ti-E,r.route.length-1):-1,kI=r.route?r.route.indexOf(W.k):-1,got=walk>=0&&kI>=0&&walk>=kI,G=[];
+for(let c=0;c<N*N;c++){const a=(c%N)*s+g,b=(c/N|0)*s+g,z=s-2*g;let col=P.tile;
+if(W.w.has(c))col=P.wall;
+else if(r.exp[c]>=0&&r.exp[c]<ti)col=`hsl(${215+75*r.exp[c]/Math.max(E-1,1)} 85% ${P.dark?50:70}%)`;
+else if(r.gen[c]>=0&&r.gen[c]<=ti)col=P.front;
+else if(W.t.has(c))col=P.trap;
+rr(a,b,z,z,col);
+const sp=c===W.s?P.ok:c===W.e?P.bad:c===W.k?"#e7a928":c===W.d?"#5b8cff":0;if(sp){x.globalAlpha=.7;rr(a,b,z,z,sp);x.globalAlpha=1}
+const ch=c===W.s?"S":c===W.e?"🚪":c===W.k?(got?"":"🔑"):c===W.d?(got?"🔓":"🔒"):W.t.has(c)&&!W.w.has(c)?"⚠️":"";if(ch)G.push([ch,a+z/2,b+z/2,c===W.s])}
+let ax,ay;
+if(walk>=0){const a=ctr(r.route[walk]),b=ctr(r.route[Math.min(walk+1,r.route.length-1)]),f=walk<r.route.length-1?t-ti:0;ax=a[0]+(b[0]-a[0])*f;ay=a[1]+(b[1]-a[1])*f}
+else[ax,ay]=ctr(ti>0?r.order[Math.min(ti,E)-1]:W.s);
+if(walk>=0){x.lineCap=x.lineJoin="round";x.lineWidth=s*.2;x.strokeStyle=P.ok;x.shadowColor=P.ok;x.shadowBlur=10;
+x.globalAlpha=.3;x.beginPath();r.route.forEach((c,i)=>{const[a,b]=ctr(c);i?x.lineTo(a,b):x.moveTo(a,b)});x.stroke();
+x.globalAlpha=1;x.beginPath();for(let i=0;i<=walk;i++){const[a,b]=ctr(r.route[i]);i?x.lineTo(a,b):x.moveTo(a,b)}x.lineTo(ax,ay);x.stroke();x.shadowBlur=0}
+x.textAlign="center";x.textBaseline="middle";x.fillStyle="#fff";
+G.forEach(([ch,a,b,bold])=>{x.font=(bold?"800 ":"")+s*.5+'px Inter,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';x.fillText(ch,a,b+s*.03)});
+x.beginPath();x.arc(ax,ay,s*.43,0,7);x.strokeStyle=P.acc;x.lineWidth=2.5;x.shadowColor=P.acc;x.shadowBlur=12;x.stroke();x.shadowBlur=0;
+x.font=s*.55+'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';x.fillText("🤖",ax,ay+s*.03)}
+function frame(){
+const L=vis(),ti=Math.floor(S.t),T=tot();
+cvs.forEach((cv,i)=>draw(cv,L[i]));
+caps.forEach((c,i)=>{const r=L[i],E=r.order.length;c.textContent=Math.min(ti,E)+" explored"+(ti>=E?(r.route?" · cost "+r.cost+" ✓":" · no route"):"")});
+const r=R[S.alg],E=r.order.length,n=Math.min(ti,E),done=ti>=E;
+$("m1").textContent=n;$("m2").textContent=n?r.fs[n-1]:1;$("m3").textContent=done?(r.route?r.cost:"—"):"…";$("m4").textContent=done?(r.route?r.route.length-1:"—"):"…";
+$("scrub").max=T;$("scrub").value=ti;$("tl").textContent=Math.min(ti,T)+" / "+T;
+$("play").textContent=S.play?"⏸ Pause":ti>=T?"↻ Replay":ti>0?"▶ Resume":"▶ Run"}
+function tick(now){if(S.play){S.t=Math.min(tot(),S.t+(now-S.last)/1000*SP[S.spd]);S.last=now;if(S.t>=tot())S.play=false}frame();if(S.play)S.raf=requestAnimationFrame(tick)}
+function go(){cancelAnimationFrame(S.raf);S.last=performance.now();S.raf=requestAnimationFrame(tick)}
+function build(){const st=$("stage"),L=S.m===1?[S.alg]:ALGS;st.className=S.m===1?"":"race";
+st.innerHTML=L.map(a=>`<figure><figcaption><b>${INFO[a][0]}</b><span></span></figcaption><canvas aria-label="${NM[a]} search on the escape room"></canvas></figure>`).join("");
+cvs=[...st.querySelectorAll("canvas")];caps=[...st.querySelectorAll("figcaption span")]}
+function table(){const v=ALGS.map(a=>R[a]),ok=v.filter(r=>r.route),b=ok.length?Math.min(...ok.map(r=>r.cost)):0,mx=Math.max(...v.map(r=>r.order.length)),lean=ok.length?Math.min(...ok.filter(r=>r.cost===b).map(r=>r.order.length)):0;
+$("rows").innerHTML=v.map(r=>`<tr><td><b>${NM[r.type]}</b></td><td><div class="bar"><i style="width:${r.order.length/mx*100}%"></i><span>${r.order.length}</span></div></td><td>${r.peak}</td><td>${r.route?r.route.length-1:"—"}</td><td>${r.route?r.cost:"—"}</td><td>${r.route?(r.cost===b?`<span class="tag ok">✓ optimal${r.order.length===lean?" · fewest explored":""}</span>`:`<span class="tag no">+${r.cost-b} over optimal</span>`):'<span class="tag no">no path</span>'}</td><td>${r.ms.toFixed(2)} ms</td></tr>`).join("")}
+function insights(){const ok=ALGS.map(a=>R[a]).filter(r=>r.route);if(!ok.length)return"<li>No valid route exists on this map. Open a path to the key, the door and the exit.</li>";
+const b=Math.min(...ok.map(r=>r.cost)),o=ok.filter(r=>r.cost===b).sort((p,q)=>p.order.length-q.order.length)[0],U=R.ucs,A=R.astar,B=R.bfs,F=R.dfs,pc=Math.round((1-A.order.length/U.order.length)*100),L=[];
+L.push(`<li><b>${NM[o.type]}</b> reached the minimum cost of <b>${b}</b> while exploring ${o.order.length} states.</li>`);
+L.push(`<li>A* explored ${A.order.length} states against ${U.order.length} for UCS, ${pc>0?pc+"% fewer":"no saving on this map"}. The heuristic pulls the search toward the key and the exit.</li>`);
+L.push(B.route?(B.cost>b?`<li>BFS found the shortest route (${B.route.length-1} moves) but paid cost ${B.cost}. It counts moves, not trap penalties.</li>`:`<li>BFS matched the optimal cost here because the cheapest route is also the shortest.</li>`):"");
+L.push(F.route?`<li>DFS used ${F.route.length-1} moves at cost ${F.cost}${F.cost>b?`, ${F.cost-b} above optimal`:""}. It finds a route, not necessarily the best one.</li>`:"");
+return L.join("")}
+function theory(){const i=INFO[S.alg];$("theory").innerHTML=`<h3>${i[0]}</h3><dl><dt>Frontier</dt><dd>${i[1]}</dd><dt>Rule</dt><dd>${i[2]}</dd><dt>Guarantee</dt><dd>${i[3]}</dd></dl>`;$("trk").textContent="tracking "+NM[S.alg]}
+function dirty(){S.t=0;S.play=false;$("lv").value="0";R={};ALGS.forEach(a=>R[a]=solve(a));table();$("ins").innerHTML=insights();frame()}
+function load(n){const p=PRE[n],f=q=>cl(p[q])[0];W={s:f("s"),e:f("e"),k:f("k"),d:f("d"),w:new Set(cl(p.w)),t:new Set(cl(p.t))};dirty();$("lv").value=n}
+function setMode(m){S.m=m;S.t=0;S.play=false;document.querySelectorAll("#views button").forEach(b=>b.classList.toggle("on",+b.dataset.m===m));build();frame()}
+function edit(c){const sp=["s","e","k","d"],m=t=>$("msg").textContent=t;
+if(sp.includes(tool)){if(sp.some(n=>n!==tool&&W[n]===c))return m("Two special tiles cannot share a cell.");W.w.delete(c);W.t.delete(c);W[tool]=c}
+else{if(sp.some(n=>W[n]===c))return m("That cell holds a special tile. Move it first.");W.w.delete(c);W.t.delete(c);if(tool==="wall")W.w.add(c);if(tool==="trap")W.t.add(c)}
+m("Map updated. The comparison below reflects your edit.");dirty()}
+function rand(){const p=()=>Math.random()*100|0;for(let i=0;i<400;i++){const sp=[p(),p(),p(),p()];if(new Set(sp).size<4||man(sp[0],sp[1])<9)continue;const w=new Set,t=new Set;
+for(let c=0;c<100;c++){if(sp.includes(c))continue;const q=Math.random();if(q<.24)w.add(c);else if(q<.32)t.add(c)}
+W={s:sp[0],e:sp[1],k:sp[2],d:sp[3],w,t};if(solve("bfs").route)break}dirty()}
+let pt=false,lc=-1;
+const paint=e=>{const b=e.target.getBoundingClientRect(),q=(v,o,z)=>Math.min(N-1,Math.max(0,Math.floor((v-o)/z*N))),c=q(e.clientY,b.top,b.height)*N+q(e.clientX,b.left,b.width);if(c!==lc){lc=c;edit(c)}};
+$("stage").addEventListener("pointerdown",e=>{if(S.m!==1||e.target.tagName!=="CANVAS")return;pt=true;lc=-1;e.target.setPointerCapture(e.pointerId);paint(e)});
+$("stage").addEventListener("pointermove",e=>{if(pt)paint(e)});
+addEventListener("pointerup",()=>pt=false);addEventListener("pointercancel",()=>pt=false);addEventListener("resize",frame);
+$("play").onclick=()=>{if(S.play)S.play=false;else{if(S.t>=tot())S.t=0;S.play=true;go()}frame()};
+$("rst").onclick=()=>{S.play=false;S.t=0;frame()};
+$("prev").onclick=()=>{S.play=false;S.t=Math.max(0,Math.floor(S.t)-1);frame()};
+$("next").onclick=()=>{S.play=false;S.t=Math.min(tot(),Math.floor(S.t)+1);frame()};
+$("scrub").oninput=e=>{S.play=false;S.t=+e.target.value;frame()};
+$("spd").oninput=e=>S.spd=+e.target.value;
+$("lv").onchange=e=>load(+e.target.value);
+$("rand").onclick=rand;$("clr").onclick=()=>{W.w.clear();W.t.clear();dirty()};
+document.querySelectorAll("#views button").forEach(b=>b.onclick=()=>setMode(+b.dataset.m));
+document.querySelectorAll("#algs button").forEach(b=>b.onclick=()=>{S.alg=b.dataset.a;document.querySelectorAll("#algs button").forEach(x=>x.classList.toggle("on",x===b));theory();if(S.m===1){S.t=0;S.play=false;build()}frame()});
+document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{tool=b.dataset.tool;document.querySelectorAll("[data-tool]").forEach(x=>x.classList.toggle("on",x===b));if(S.m!==1)setMode(1)});
+const mq=matchMedia("(prefers-color-scheme:dark)");mq.addEventListener("change",()=>{pal();frame()});
+$("theme").onclick=()=>{const d=document.documentElement,cur=d.dataset.theme||(mq.matches?"dark":"light");d.dataset.theme=cur==="dark"?"light":"dark";pal();frame()};
+pal();build();theory();load(1);
+})();
+</script>
+</body>
+</html>
